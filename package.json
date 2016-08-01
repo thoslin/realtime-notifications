@@ -1,0 +1,25 @@
+{
+  "name": "realtime-notifications",
+  "version": "1.0.0",
+  "description": "realtime-notifications ====================== If you are making a web application which needs to update client in realtime, you can use this example to quickly write such an application in `nodejs` using `socket.io`. `Redis pubsub` is used as a data source in this example. You can use any other data source.",
+  "main": "index.js",
+  "dependencies": {
+    "redis": "^2.6.2",
+    "socket.io": "^1.4.8",
+    "sockjs": "^0.3.17"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/roshansingh/realtime-notifications.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/roshansingh/realtime-notifications/issues"
+  },
+  "homepage": "https://github.com/roshansingh/realtime-notifications#readme"
+}
