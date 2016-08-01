@@ -9,7 +9,7 @@
 			//on connetion, updates connection state and sends subscribe request
 			sockjs.onopen = function(data){
 				setStatus('connected');
-				sockjs.send('connected');
+				sockjs.send(JSON.stringify({type: "subscribe", channel: "notif"}));
 			};
 
 			//when reconnection is attempted, updates status

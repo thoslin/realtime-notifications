@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import os
 import tornado
 import tornadoredis
 import sockjs
@@ -9,17 +10,16 @@ from sockjs.tornado import SockJSConnection, SockJSRouter
 from tornado import httpserver
 from datetime import timedelta
 
-connections = set()
+connections = dict()
 #subscriber = tornadoredis.pubsub.SockJSSubscriber(tornadoredis.Client())
 
 def on_message(message):
-    print message
-    for conn in connections:
+    subscribers = connections.get(message.channel, [])
+    for conn in subscribers:
         conn.send(message.body)
 
 redis_client = tornadoredis.Client()
 redis_client.connect()
-#redis_client.subscribe("notif", lambda message: (conn.send(message) for conn in connections))
 redis_client.subscribe("notif", lambda message: redis_client.listen(on_message))
 
 
@@ -30,10 +30,14 @@ redis_publish_client.connect()
 class SockJSServer(SockJSConnection):
     def on_open(self, request):
         self.send(json.dumps({"text": "Welcome!"}))
-        connections.add(self)
 
     def on_message(self, message):
-        pass
+        print "Receive message: " + message
+        data = json.loads(message)
+        if(data.get("type") == "subscribe"):
+            subscribers = connections.get(data["channel"], [])
+            subscribers.append(self)
+            connections[data["channel"]] = subscribers
 
     def on_close(self):
         connections.remove(self)
@@ -57,7 +61,8 @@ if __name__ == "__main__":
         (r"/", IndexHandler),
     ] + sockjs_router.urls
 
-    application = tornado.web.Application(urls, template_path="../www")
+    application = tornado.web.Application(urls,
+        template_path=os.path.join(os.path.abspath(__file__).rsplit("/")[0], "www"))
     application.listen(3000)
     dummy_publish()
     tornado.ioloop.IOLoop.instance().start();

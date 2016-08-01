@@ -55,7 +55,7 @@ function handler (req, res) {
  * socket io client, which listens for new websocket connection
  * and then handles various requests
  */
-connections = [];
+connections = {};
 
 sockjs_server.on('connection', function (conn) {
 
@@ -64,10 +64,16 @@ sockjs_server.on('connection', function (conn) {
 
   //on subscription request joins specified room
   //later messages are broadcasted on the rooms
-  //conn.on('data', function(data){
-  //  connections[data.channel] = [conn];
-  //});
-  connections.push(conn);
+  conn.on('data', function(data){
+    console.log("Receive data: " + data);
+    var subscribers = [];
+    var message = JSON.parse(data);
+    if(message.channel in connections) {
+      subscribers = connections[message.channel];
+    }
+    subscribers.push(conn);
+    connections[message.channel] = subscribers;
+  });
 });
 
 /**
@@ -85,9 +91,12 @@ redisClient.on('ready', function() {
  */
 redisClient.on("message", function(channel, message){
     var resp = {'text': message, 'channel':channel}
-    connections.forEach(function(conn){
-      conn.write(JSON.stringify(resp));
-    });
+    var subscribers = connections[channel] || null;
+    if(subscribers != null) {
+      subscribers.forEach(function(conn){
+        conn.write(JSON.stringify(resp));
+      });
+    }
 });
 
 /**
